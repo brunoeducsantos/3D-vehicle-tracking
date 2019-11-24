@@ -4,12 +4,15 @@
 #include <numeric>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/features2d.hpp>
+#include <opencv2/xfeatures2d.hpp>
+#include <opencv2/xfeatures2d/nonfree.hpp>
 
 #include "camFusion.hpp"
 #include "dataStructures.h"
 
 using namespace std;
-
+using namespace cv;
 
 // Create groups of Lidar points whose projection into the camera falls into the same bounding box
 void clusterLidarWithROI(std::vector<BoundingBox> &boundingBoxes, std::vector<LidarPoint> &lidarPoints, float shrinkFactor, cv::Mat &P_rect_xx, cv::Mat &R_rect_xx, cv::Mat &RT)
@@ -152,7 +155,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
 }
 
 
-void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)
+void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame,bool bVis)
 {       
 
         vector<std::pair<int, int>> bestMatches;
@@ -173,7 +176,6 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
                 }
             }
         }
-        
         //Count the number of points per bbox match
         std::map<std::pair<int, int>, int> countsMatch;
         for( const auto & p :bestMatches){
@@ -186,7 +188,32 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
             std::pair<int,int> bbIDs = p.first;
             if(p.second>minBBXcount) {
                 bbBestMatches.insert({bbIDs.first,bbIDs.second});
-                std::cout<<"FIrst"<<bbIDs.first<<"Second"<<bbIDs.second<<std::endl;
             }
+        }
+
+        if(bVis) {
+            cv::Mat currImg = currFrame.cameraImg.clone();
+            cv::Mat prevImg = prevFrame.cameraImg.clone();
+            for(auto bmatch:bbBestMatches) {
+                // Draw rectangle displaying the bounding box
+                int top, left, width, height;
+                top = prevFrame.boundingBoxes[bmatch.first].roi.y;
+                left = prevFrame.boundingBoxes[bmatch.first].roi.x;
+                width = prevFrame.boundingBoxes[bmatch.first].roi.width;
+                height = prevFrame.boundingBoxes[bmatch.first].roi.height;
+
+                top = currFrame.boundingBoxes[bmatch.second].roi.y;
+                left = currFrame.boundingBoxes[bmatch.second].roi.x;
+                width = currFrame.boundingBoxes[bmatch.second].roi.width;
+                height = currFrame.boundingBoxes[bmatch.second].roi.height;
+                cv::rectangle(currImg, cv::Point(left, top), cv::Point(left+width, top+height),cv::Scalar(0, 255, 0), 2);
+            }
+            
+            cv::drawKeypoints(prevImg, prevFrame.keypoints, prevFrame.cameraImg, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);   
+            string windowName = "Object classification";
+            cv::namedWindow( windowName, 1 );
+            cv::imshow( windowName, currImg);
+            cv::waitKey(0); // wait for key to be pressed            
+
         }
 }
