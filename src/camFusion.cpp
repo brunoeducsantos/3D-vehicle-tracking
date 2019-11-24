@@ -154,41 +154,39 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)
 {       
-        std::vector<int> prevFrameBoxIDs;
-        std::vector<int> currFrameBoxIDs;
 
+        vector<std::pair<int, int>> bestMatches;
+        bestMatches.reserve(prevFrame.boundingBoxes.size()*currFrame.boundingBoxes.size());
         //loop over all matches betwen previous and current frame
         for(auto & match : matches){
-            cv::KeyPoint prevFrameKpt= prevFrame.keypoints[match.queryIdx];
-            cv::KeyPoint currFrameKpt= currFrame.keypoints[match.trainIdx];
-
+            auto prevFrameKpt= prevFrame.keypoints[match.queryIdx].pt;
+            auto currFrameKpt= currFrame.keypoints[match.trainIdx].pt;
             //Get box ids inside bounding box
-            for(auto prevFrame.boundingBoxes: box){
-                if (box.roi.contains(prevFrameKpt)){
-                    prevFrameBoxIDs.push_back(box.boxID);
+            for(auto &box_prev: prevFrame.boundingBoxes){
+                for(auto &box_curr: currFrame.boundingBoxes){
+                    //Find if matched points belong to a pair of box ID
+                    if (box_prev.roi.contains(prevFrameKpt) && box_curr.roi.contains(currFrameKpt))
+                    {
+                        std::pair<int,int> box_m = std::make_pair(box_prev.boxID,box_curr.boxID);
+                        bestMatches.push_back(box_m);
+                    }
                 }
             }
-            for(auto currFrame.boundingBoxes: box){
-                if (box.roi.contains(prevFrameKpt)){
-                    currFrameBoxIDs.push_back(box.boxID);
-                }
-            }
+        }
+        
+        //Count the number of points per bbox match
+        std::map<std::pair<int, int>, int> countsMatch;
+        for( const auto & p :bestMatches){
+            ++countsMatch[p];
         }
 
         //Find the highest number of points per bounding box in prev and current frame
-        
-        for(auto prevFrameBoxIDs: id_prevFrame){
-            
-
+        int minBBXcount = 2;
+        for (const auto& p : countsMatch) {
+            std::pair<int,int> bbIDs = p.first;
+            if(p.second>minBBXcount) {
+                bbBestMatches.insert({bbIDs.first,bbIDs.second});
+                std::cout<<"FIrst"<<bbIDs.first<<"Second"<<bbIDs.second<<std::endl;
+            }
         }
-
-        //Match the bounding boxes
-
-
-
-
-
-        }
-
-
 }
