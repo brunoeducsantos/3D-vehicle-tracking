@@ -184,36 +184,46 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
 
         //Find the highest number of points per bounding box in prev and current frame
         int minBBXcount = 2;
+        bool processed[prev_frame.boundingBoxes.size()];
+        //use set to store visited ids
         for (const auto& p : countsMatch) {
             std::pair<int,int> bbIDs = p.first;
             if(p.second>minBBXcount) {
                 bbBestMatches.insert({bbIDs.first,bbIDs.second});
             }
         }
+ if (bVis) {
+    cv::Mat currImg = currFrame.cameraImg.clone();
+    cv::Mat prevImg = prevFrame.cameraImg.clone();
+    int match_id = 0;
+    for (auto bmatch:bbBestMatches) {
 
-        if(bVis) {
-            cv::Mat currImg = currFrame.cameraImg.clone();
-            cv::Mat prevImg = prevFrame.cameraImg.clone();
-            for(auto bmatch:bbBestMatches) {
-                // Draw rectangle displaying the bounding box
-                int top, left, width, height;
-                top = prevFrame.boundingBoxes[bmatch.first].roi.y;
-                left = prevFrame.boundingBoxes[bmatch.first].roi.x;
-                width = prevFrame.boundingBoxes[bmatch.first].roi.width;
-                height = prevFrame.boundingBoxes[bmatch.first].roi.height;
+        std::string label = std::to_string(match_id);
 
-                top = currFrame.boundingBoxes[bmatch.second].roi.y;
-                left = currFrame.boundingBoxes[bmatch.second].roi.x;
-                width = currFrame.boundingBoxes[bmatch.second].roi.width;
-                height = currFrame.boundingBoxes[bmatch.second].roi.height;
-                cv::rectangle(currImg, cv::Point(left, top), cv::Point(left+width, top+height),cv::Scalar(0, 255, 0), 2);
-            }
-            
-            cv::drawKeypoints(prevImg, prevFrame.keypoints, prevFrame.cameraImg, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);   
-            string windowName = "Object classification";
-            cv::namedWindow( windowName, 1 );
-            cv::imshow( windowName, currImg);
-            cv::waitKey(0); // wait for key to be pressed            
+        // Draw rectangle displaying the bounding box
+        int top, left, width, height;
+        top = currFrame.boundingBoxes[bmatch.second].roi.y;
+        left = currFrame.boundingBoxes[bmatch.second].roi.x;
+        width = currFrame.boundingBoxes[bmatch.second].roi.width;
+        height = currFrame.boundingBoxes[bmatch.second].roi.height;
+        cv::rectangle(currImg, cv::Point(left, top), cv::Point(left + width, top + height), cv::Scalar(0, 255, 0), 2);
+        cv::putText(currImg, label, cv::Point(left, top), cv::FONT_ITALIC, 0.75, cv::Scalar(0, 255, 0), 2);
 
+        top = prevFrame.boundingBoxes[bmatch.first].roi.y;
+        left = prevFrame.boundingBoxes[bmatch.first].roi.x;
+        width = prevFrame.boundingBoxes[bmatch.first].roi.width;
+        height = prevFrame.boundingBoxes[bmatch.first].roi.height;
+        cv::rectangle(prevImg, cv::Point(left, top), cv::Point(left + width, top + height), cv::Scalar(0, 0, 255), 2);
+        cv::putText(prevImg, label, cv::Point(left, top), cv::FONT_ITALIC, 0.75, cv::Scalar(0, 0, 255), 2);
+
+        ++match_id;
         }
+
+        string windowName = "Object classification";
+        cv::Mat concat_img;
+        cv::vconcat(currImg, prevImg, concat_img);
+        cv::namedWindow(windowName, 2);
+        cv::imshow(windowName, concat_img);
+        cv::waitKey(0); // wait for key to be pressed
+  }
 }
