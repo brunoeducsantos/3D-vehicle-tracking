@@ -10,7 +10,7 @@
 #include<set>
 #include "camFusion.hpp"
 #include "dataStructures.h"
-
+#include <math.h>
 using namespace std;
 using namespace cv;
 
@@ -151,9 +151,42 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
                      std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
 {
-    // ...
+      // auxiliary variables
+    double dT = 1./frameRate; // time between two measurements in seconds
+
+    // find closest distance to Lidar points 
+    double minXPrev = 1e9, minXCurr = 1e9;
+    int ind=0;
+    for(auto it=lidarPointsPrev.begin(); it!=lidarPointsPrev.end(); ++it) {
+        if(!isOutlier(lidarPointsPrev, 40 , 0.2, ind)){
+            minXPrev = minXPrev>it->x ? it->x : minXPrev;
+        }
+        ind++;
+    }
+    ind=0;
+    for(auto it=lidarPointsCurr.begin(); it!=lidarPointsCurr.end(); ++it) {
+        if(!isOutlier(lidarPointsCurr, 40 , 0.2, ind)){
+            minXCurr = minXCurr>it->x ? it->x : minXCurr;
+        }
+        ind++;
+    }
+    // compute TTC from both measurements
+    TTC = minXCurr * dT / (minXPrev-minXCurr);
+    
 }
 
+bool isOutlier(std::vector<LidarPoint> &lidarPoints, int n_min, float dist, int index){
+    int n_curr=0;
+    for(int i=0;i<lidarPoints.size();i++){
+        if(i==index) continue;
+        float curr_dist = sqrt(pow(lidarPoints[i].x-lidarPoints[index].x,2) + pow(lidarPoints[i].y-lidarPoints[index].y,2) +pow(lidarPoints[i].z-lidarPoints[index].z,2));
+        if(curr_dist <dist){
+            n_curr++;
+        }
+        if(n_curr> n_min) return false;
+    }
+    return true;
+}
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame,bool bVis)
 {       
@@ -184,7 +217,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
 
         //Find the highest number of points per bounding box in prev and current frame
 
-        int minBBXcount = 2;
+        int minBBXcount = 10;
         //use set to store visited ids
         std::set<int> visited_ids;
         int max[countsMatch.size()];
