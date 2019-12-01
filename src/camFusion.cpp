@@ -7,7 +7,7 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/xfeatures2d.hpp>
 #include <opencv2/xfeatures2d/nonfree.hpp>
-
+#include<set>
 #include "camFusion.hpp"
 #include "dataStructures.h"
 
@@ -183,15 +183,33 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
         }
 
         //Find the highest number of points per bounding box in prev and current frame
+
         int minBBXcount = 2;
-        bool processed[prev_frame.boundingBoxes.size()];
         //use set to store visited ids
+        std::set<int> visited_ids;
+        int max[countsMatch.size()];
+        int match_box[countsMatch.size()]= {-1};
         for (const auto& p : countsMatch) {
             std::pair<int,int> bbIDs = p.first;
-            if(p.second>minBBXcount) {
-                bbBestMatches.insert({bbIDs.first,bbIDs.second});
+            if(visited_ids.find(bbIDs.second) != visited_ids.end()){
+                if((p.second > max[bbIDs.second])&& (p.second > minBBXcount)) {
+                    max[bbIDs.second]= p.second;
+                    match_box[bbIDs.second]= bbIDs.first;
+                }
+            }
+            else{
+                max[bbIDs.second] = p.second;
+                if(p.second>minBBXcount) match_box[bbIDs.second]= bbIDs.first;
+                visited_ids.insert(bbIDs.second);
             }
         }
+
+        for(int i=0; i< countsMatch.size();i++){
+            if(match_box[i]>0){
+                 bbBestMatches.insert({match_box[i],i});
+            }
+        }
+
  if (bVis) {
     cv::Mat currImg = currFrame.cameraImg.clone();
     cv::Mat prevImg = prevFrame.cameraImg.clone();
