@@ -157,7 +157,7 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
             auto diff_pt=  prevFrameKpt-currFrameKpt;
             float dist= cv::norm(prevFrameKpt - currFrameKpt);
             //check if are outliers and inside ROI
-            if (boundingBox.roi.contains(currFrameKpt) && (fabs(mean_dist-dist)<50.)){
+            if (boundingBox.roi.contains(currFrameKpt) && (fabs(mean_dist-dist)<20.)){
                 matchCC.push_back(kptMatches[iter]);
             }
             iter++;
