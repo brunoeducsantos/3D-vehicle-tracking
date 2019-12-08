@@ -142,7 +142,9 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
         auto prevFrameKpt= kptsPrev[match.queryIdx].pt;
         auto currFrameKpt= kptsCurr[match.trainIdx].pt;
         auto diff_pt=  prevFrameKpt-currFrameKpt;
-        mean_dist+= cv::norm(prevFrameKpt - currFrameKpt);
+        if(boundingBox.roi.contains(currFrameKpt)){
+            mean_dist+= cv::norm(prevFrameKpt - currFrameKpt);
+        }
     }
     mean_dist/=kptMatches.size();
     int iter=0;
