@@ -85,9 +85,9 @@ int main(int argc, const char *argv[])
     //output performance parameters
     std::vector<perfStats> combinations;
     //1. KeyPoints Type: HARRIS, FAST, BRISK, ORB, AKAZE, and SIFT
-    std::string keypoints[7]= {"SHITOMASI","HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
+    std::vector<std::string> keypoints{"SHITOMASI","HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
     //2. Descriptors Type: BRIEF, ORB, FREAK, AKAZE, SIFT
-    std::string descriptortype[5]={"BRIEF", "ORB", "FREAK", "AKAZE", "SIFT"};
+    std::vector<std::string> descriptortypes{"BRIEF", "ORB", "FREAK", "AKAZE", "SIFT"};
     std::string filename = "../data.csv";
     std::ofstream output_stream(filename, std::ios::binary);
     if (!output_stream.is_open()) {
@@ -111,7 +111,7 @@ int main(int argc, const char *argv[])
 
     /* MAIN LOOP OVER ALL IMAGES */
     for(auto & kpt: keypoints){
-        for(auto & desc: descriptortype){
+        for(auto & desc: descriptortypes){
             for (size_t imgIndex = 0; imgIndex <= imgEndIndex - imgStartIndex; imgIndex+=imgStepWidth)
             {       
                 perfStats  Perf = perfStats();
@@ -221,9 +221,8 @@ int main(int argc, const char *argv[])
                 /* EXTRACT KEYPOINT DESCRIPTORS */
 
                 cv::Mat descriptors;
-                string descriptorType = desc; // BRISK, BRIEF, ORB, FREAK, AKAZE, SIFT
                 try { 
-                   descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType);
+                   descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, desc);
 
                 } catch (const cv::Exception& e){
                     std::cout<<"Kpt"<<kpt<<"Desc"<<desc<<std::endl;
@@ -257,7 +256,6 @@ int main(int argc, const char *argv[])
 
                     cout << "#7 : MATCH KEYPOINT DESCRIPTORS done" << endl;
 
-                    
                     /* TRACK 3D OBJECT BOUNDING BOXES */
 
                     map<int, int> bbBestMatches;
