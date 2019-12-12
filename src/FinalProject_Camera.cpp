@@ -106,12 +106,12 @@ int main(int argc, const char *argv[])
     // misc
     double sensorFrameRate = 10.0 / imgStepWidth; // frames per second for Lidar and camera
     int dataBufferSize = 2;       // no. of images which are held in memory (ring buffer) at the same time
-    vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
     bool bVis = false;            // visualize results
 
     /* MAIN LOOP OVER ALL IMAGES */
     for(auto & kpt: keypoints){
         for(auto & desc: descriptortypes){
+            vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
             for (size_t imgIndex = 0; imgIndex <= imgEndIndex - imgStartIndex; imgIndex+=imgStepWidth)
             {       
                 perfStats  Perf = perfStats();
@@ -254,6 +254,7 @@ int main(int argc, const char *argv[])
                     // store matches in current data frame
                     (dataBuffer.end() - 1)->kptMatches = matches;
 
+
                     cout << "#7 : MATCH KEYPOINT DESCRIPTORS done" << endl;
 
                     /* TRACK 3D OBJECT BOUNDING BOXES */
@@ -270,7 +271,6 @@ int main(int argc, const char *argv[])
                     (dataBuffer.end()-1)->bbMatches = bbBestMatches;
 
                     cout << "#8 : TRACK 3D OBJECT BOUNDING BOXES done" << endl;
-
 
                     /* COMPUTE TTC ON OBJECT IN FRONT */
 
