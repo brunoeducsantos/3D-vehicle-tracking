@@ -30,6 +30,7 @@ struct perfStats {
   double ttc_camera;
   double ttc_lidar;
   double diff_ttc_camera_lidar;
+  int frame_id;
 };
 /* MAIN PROGRAM */
 int main(int argc, const char *argv[])
@@ -88,7 +89,7 @@ int main(int argc, const char *argv[])
     std::vector<std::string> keypoints{"SHITOMASI","HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
     //2. Descriptors Type: BRIEF, ORB, FREAK, AKAZE, SIFT
     std::vector<std::string> descriptortypes{"BRIEF", "ORB", "FREAK", "AKAZE", "SIFT"};
-    std::string filename = "../data.csv";
+    std::string filename = "../results/data.csv";
     std::ofstream output_stream(filename, std::ios::binary);
     if (!output_stream.is_open()) {
         std::cerr << "failed to open file: " << filename << std::endl;
@@ -99,6 +100,7 @@ int main(int argc, const char *argv[])
                 << "Descriptor Type" << ","
                 <<"Matching type"<<","
                 << "Sel Type"<<","
+                << "Frame_ID" << ","
                 << "Camera TTC (s)"<< ","
                 <<"Lidar TTC(s)"<<","
                 << "Difference TTC" <<std::endl;
@@ -316,6 +318,8 @@ int main(int argc, const char *argv[])
                             Perf.ttc_camera = ttcCamera;
                             Perf.ttc_lidar = ttcLidar;
                             Perf.diff_ttc_camera_lidar = ttcCamera -ttcLidar;
+                            Perf.frame_id = imgIndex;
+
                             combinations.push_back(Perf);                      
                             bVis = false;
                             if (bVis)
@@ -352,6 +356,7 @@ int main(int argc, const char *argv[])
                     << "," << combo.descriptorType
                     << "," << combo.matchingType
                     << "," << combo.selectorType
+                    << "," << combo.frame_id
                     << "," << std::fixed << std::setprecision(8) << combo.ttc_camera  
                     <<","<< std::fixed << std::setprecision(8) << combo.ttc_lidar  
                     <<","<< std::fixed << std::setprecision(8) << combo. diff_ttc_camera_lidar<<std::endl;
