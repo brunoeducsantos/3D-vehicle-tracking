@@ -244,6 +244,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
         }
         ind++;
     }
+    
     // compute TTC from both measurements
     TTC = minXCurr * dT / (minXPrev-minXCurr);
     
