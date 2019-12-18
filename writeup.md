@@ -18,7 +18,7 @@ The algorithm to compute lidar TTC is divided into three parts (**computeTTCLida
 
 The outliers removal is based on defined threshold euclidean distance around each point belonging to a cluster (in our case cars). 
 
-![match2](images/cluster.png)
+![match2](images/clusterex.png)
 
 ## Associate Keypoint Correspondences with Bounding Boxes
 The algorithm is implemented in **clusterKptMatchesWithROI**. 
@@ -43,6 +43,7 @@ For the first case, there are 5 outliers that are biasing the TTC computation le
 
 ![match3](images/clusterfastorb.png)
 
+
 The same issue happened in the second case, where outlier removal robustness had predominant role.
 
 ![match4](images/clusterfastfreak.png)
@@ -55,11 +56,26 @@ The third case there is one outlier that biased the result.
 
 Finally, previous TTC estimations maybe affected by clustering object performance due to limitations of point cloud projection leading to occlusion parts of the object.
 
+The estimate manual distance using visual inside of point cloud is the following:
+* BRISK-SIFT: 9 meters
+* FAST-ORB: 9 meters
+* FAST-FREAK: 9.5 meters
+
+Considering the space between lines 1 meter, the following figures show us an estimate of distance to the next forward car.
+
+![FAST_FREAK](images/clusterfastfreakcloud.png)
+
+![FAST_FORB](images/clusterfastorbcloud.png)
+
+![SIFT_BRIK](images/clustersiftbriskcloud.png)
+
 
 ## Performance Evaluation 2: Lidar and Camera TTC difference evaluation 
 
-
-
+ Running the different detector / descriptor combinations from previous project, the following data was recorded per frame in [this file](results/data.csv):
+ * Camera TTC evaluation
+ * Lidar TTC evaluation
+ * Difference between previous estimates
 
 ## Reference
 * Check [results](results/data.csv) for Lidar and Camera TTC for differents combinations of keypoints descriptor and detectors.
