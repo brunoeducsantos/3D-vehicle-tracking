@@ -77,5 +77,38 @@ Considering the space between lines 1 meter, the following figures show us an es
  * Lidar TTC evaluation
  * Difference between previous estimates
 
+Regarding camera TTC estimate stability as well as higher similarity with Lidar TTC criteria, the best performance descriptor/detector are:
+* BRIEF/SIFT
+* BRIEF/AKAZE
+* FREAK/AKAZE
+In addition, the camera TTC evaluated for the previous cases decrease gradually through all frames, which is expected since the car having the sensor is closer to the forward one.
+
+The plots showing the metrics mentioned early in the section are,for the best performance cases, respectively:
+
+![desc_BRIEF_detect_SIFT](results/plots/desc_BRIEF_detect_SIFT.png)
+![desc_BRIEF_detect_AKAZE](results/plots/desc_BRIEF_detect_AKAZE.png)
+![desc_FREAK_detect_AKAZE](results/plots/desc_FREAK_detect_AKAZE.png)
+The maximum difference TTC between Lidar and Camera TTC is, respectively:
+* 8 seconds
+* 3 seconds
+* 3 seconds
+
+On the opposite side of the spectrum, the least performance cases are:
+* BRIEF/ORB
+* FREAK/BRISK 
+* FREAK/HARRIS
+
+The maximum difference TTC between Lidar and Camera TTC is, respectively:
+* 17 seconds
+* 11 seconds
+* 33 seconds
+
+The previous values clear indicate the poor performance of TTC evaluation using this set of descriptor/detectors.
+  
+
+![desc_BRIEF_detect_ORB](results/plots/desc_BRIEF_detect_ORB.png)
+![desc_FREAK_detect_BRISK](results/plots/desc_FREAK_detect_BRISK.png)
+![desc_FREAK_detect_HARRIS](results/plots/desc_FREAK_detect_HARRIS.png)
+
 ## Reference
-* Check [results](results/data.csv) for Lidar and Camera TTC for differents combinations of keypoints descriptor and detectors.
+* Check [plots](results/plots) for Lidar and Camera TTC for differents combinations of keypoints descriptor and detectors.
