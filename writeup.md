@@ -76,6 +76,3 @@ Considering the space between lines 1 meter, the following figures show us an es
  * Camera TTC evaluation
  * Lidar TTC evaluation
  * Difference between previous estimates
-
-## Reference
-* Check [results](results/data.csv) for Lidar and Camera TTC for differents combinations of keypoints descriptor and detectors.
