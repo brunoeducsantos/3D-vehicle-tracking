@@ -81,6 +81,7 @@ Regarding camera TTC estimate stability as well as higher similarity with Lidar 
 * BRIEF/SIFT
 * BRIEF/AKAZE
 * FREAK/AKAZE
+
 In addition, the camera TTC evaluated for the previous cases decrease gradually through all frames, which is expected since the car having the sensor is closer to the forward one.
 
 The plots showing the metrics mentioned early in the section are,for the best performance cases, respectively:
@@ -88,6 +89,7 @@ The plots showing the metrics mentioned early in the section are,for the best pe
 ![desc_BRIEF_detect_SIFT](results/plots/desc_BRIEF_detect_SIFT.png)
 ![desc_BRIEF_detect_AKAZE](results/plots/desc_BRIEF_detect_AKAZE.png)
 ![desc_FREAK_detect_AKAZE](results/plots/desc_FREAK_detect_AKAZE.png)
+
 The maximum difference TTC between Lidar and Camera TTC is, respectively:
 * 8 seconds
 * 3 seconds
@@ -104,7 +106,6 @@ The maximum difference TTC between Lidar and Camera TTC is, respectively:
 * 33 seconds
 
 The previous values clear indicate the poor performance of TTC evaluation using this set of descriptor/detectors.
-  
 
 ![desc_BRIEF_detect_ORB](results/plots/desc_BRIEF_detect_ORB.png)
 ![desc_FREAK_detect_BRISK](results/plots/desc_FREAK_detect_BRISK.png)
