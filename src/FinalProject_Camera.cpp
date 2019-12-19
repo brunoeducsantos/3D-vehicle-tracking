@@ -25,12 +25,10 @@ using namespace std;
 struct perfStats {
   std::string detectorType;
   std::string descriptorType;
-  std::string matchingType;
-  std::string selectorType;
+  int frame_id;
   double ttc_camera;
   double ttc_lidar;
   double diff_ttc_camera_lidar;
-  int frame_id;
 };
 /* MAIN PROGRAM */
 int main(int argc, const char *argv[])
@@ -98,8 +96,6 @@ int main(int argc, const char *argv[])
      // write CSV header row
     output_stream << "Detector Type" << ","
                 << "Descriptor Type" << ","
-                <<"Matching type"<<","
-                << "Sel Type"<<","
                 << "Frame_ID" << ","
                 << "Camera TTC (s)"<< ","
                 <<"Lidar TTC(s)"<<","
@@ -300,7 +296,7 @@ int main(int argc, const char *argv[])
                         // compute TTC for current match
                         if( currBB->lidarPoints.size()>0 && prevBB->lidarPoints.size()>0 ) // only compute TTC if we have Lidar points
                         {
-                            //compute time-to-collision based on Lidar data 
+                            //compute time-to-collision basdesced on Lidar data 
                             double ttcLidar; 
                             
                             computeTTCLidar(prevBB->lidarPoints, currBB->lidarPoints, sensorFrameRate, ttcLidar);
@@ -313,8 +309,6 @@ int main(int argc, const char *argv[])
                             computeTTCCamera((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, currBB->kptMatches, sensorFrameRate, ttcCamera);
                             Perf.descriptorType =  desc;
                             Perf.detectorType = kpt;
-                            Perf.matchingType =   matcherType;
-                            Perf.selectorType = selectorType;
                             Perf.ttc_camera = ttcCamera;
                             Perf.ttc_lidar = ttcLidar;
                             Perf.diff_ttc_camera_lidar = ttcCamera -ttcLidar;
@@ -354,8 +348,6 @@ int main(int argc, const char *argv[])
       output_stream << combo.detectorType
                     << "," << combo.detectorType
                     << "," << combo.descriptorType
-                    << "," << combo.matchingType
-                    << "," << combo.selectorType
                     << "," << combo.frame_id
                     << "," << std::fixed << std::setprecision(8) << combo.ttc_camera  
                     <<","<< std::fixed << std::setprecision(8) << combo.ttc_lidar  

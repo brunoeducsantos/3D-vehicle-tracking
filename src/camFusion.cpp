@@ -351,6 +351,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
         cv::vconcat(currImg, prevImg, concat_img);
         cv::namedWindow(windowName, 2);
         cv::imshow(windowName, concat_img);
+        cv::imwrite("../images/multiplebox.png",concat_img);
         cv::waitKey(0); // wait for key to be pressed
   }
 }
