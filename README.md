@@ -1,14 +1,18 @@
 # 3D Object Tracking
 
-Welcome to the final project of the camera course. By completing all the lessons, you now have a solid understanding of keypoint detectors, descriptors, and methods to match them between successive images. Also, you know how to detect objects in an image using the YOLO deep-learning framework. And finally, you know how to associate regions in a camera image with Lidar points in 3D space. Let's take a look at our program schematic to see what we already have accomplished and what's still missing.
+
+<img src="images/ttc_estimation.png" width="740" height="414" />
+
+## Overview
+In this project the following keys concepts were developed:
+* Keypoint detectors and descriptors
+* Object detection using the pre-trained YOLO deep-learning framework
+* Methods to track objects by matching keypoints and bounding boxes across successive images
+* Associating regions in a camera image with lidar points in 3D space
+* Estimate TTC (aka Time-To-Collision) using LiDAR and camera key point matching 
 
 <img src="images/course_code_structure.png" width="779" height="414" />
 
-In this final project, you will implement the missing parts in the schematic. To do this, you will complete four major tasks: 
-1. First, you will develop a way to match 3D objects over time by using keypoint correspondences. 
-2. Second, you will compute the TTC based on Lidar measurements. 
-3. You will then proceed to do the same using the camera, which requires to first associate keypoint matches to regions of interest and then to compute the TTC based on those matches. 
-4. And lastly, you will conduct various tests with the framework. Your goal is to identify the most suitable detector/descriptor combination for TTC estimation and also to search for problems that can lead to faulty measurements by the camera or Lidar sensor. In the last course of this Nanodegree, you will learn about the Kalman filter, which is a great way to combine the two independent TTC measurements into an improved version which is much more reliable than a single sensor alone can be. But before we think about such things, let us focus on your final project in the camera course. 
 
 ## Dependencies for Running Locally
 * cmake >= 2.8
@@ -32,4 +36,45 @@ In this final project, you will implement the missing parts in the schematic. To
 1. Clone this repo.
 2. Make a build directory in the top level project directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
-4. Run it: `./3D_object_tracking`.
+4. Run it: `./3D_object_tracking arg1 arg2 arg3 arg4 arg5`.
+
+For each argument, we select the following options:
+
+* arg1(KeyPoints Type): HARRIS, FAST, BRISK, ORB, AKAZE, and SIFT
+* arg2(Descriptors Type): BRIEF, ORB, FREAK, AKAZE, SIFT
+* arg3 (matcher Type) : MAT_BF, MAT_FLANN
+* arg4 (descriptor Type) : DES_BINARY, DES_HOG
+* arg5 (selector Type):  SEL_NN, SEL_KNN
+
+## Implementation approach  
+
+### Match 3D Objects
+
+The algorithm performing match of bounding boxes is in [matchBoundingBoxes](src/camera_fusion.cpp).
+The implementation is divided into three seteps: 
+1. Store in a pair of values box ids which are in previous and current frame bounding boxes
+2. Evaluate the number of pair points per bounding box match between current and previous frame
+3. Find the highest number of points per bounding box in prev and current frame above a certain threshold, choosing only the max counting bounding box per object detected 
+
+![match](images/match3d.png)
+
+### Compute Lidar-based TTC
+The algorithm to [compute lidar TTC](src/camera_fusion.cpp) is divided into three parts: 
+1. Outliers removal.
+2. Compute closest point in previous and current lidar frame. 
+3. Compute TTC between both frames.
+
+The outliers removal is based on defined threshold euclidean distance around each point belonging to a cluster (in our case cars). 
+
+<img src="images/clusterex.png" width="440" height="414" />
+
+### Associate Keypoint Correspondences with Bounding Boxes
+The algorithm is implemented in [clusterKptMatchesWithROI](src/camFusion.hpp). 
+The match between keypoints and each bounding box is divided into two steps:
+1. Compute absolute mean distance between current and previous frames, considering only the keypoints belonging to a bounding box.
+2. Store the keypoints within a certain distance threshold.
+
+
+## Reference
+
+* For further details on analytics about TTC estimates check [this report](writeup.md)
