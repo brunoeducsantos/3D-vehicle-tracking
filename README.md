@@ -78,3 +78,7 @@ The match between keypoints and each bounding box is divided into two steps:
 ## Reference
 
 * For further details on analytics about TTC estimates check [this report](writeup.md)
+
+
+## Disclamer
+This project was cloned from [Udacity 3D tracking project](https://github.com/udacity/SFND_3D_Object_Tracking) in the context of [Sensor Fusion Engineer nanodegree](https://www.udacity.com/course/sensor-fusion-engineer-nanodegree--nd313).
