@@ -22,21 +22,15 @@
 
 using namespace std;
 
-struct perfStats {
-  std::string detectorType;
-  std::string descriptorType;
-  int frame_id;
-  double ttc_camera;
-  double ttc_lidar;
-  double diff_ttc_camera_lidar;
-};
 /* MAIN PROGRAM */
 int main(int argc, const char *argv[])
 {
    //Parameters 
-    //1. matcher Type : MAT_BF, MAT_FLANN
-    //2. descriptor Type : DES_BINARY, DES_HOG
-    //3. selector Type:  SEL_NN, SEL_KNN
+    //1. KeyPoints Type: HARRIS, FAST, BRISK, ORB, AKAZE, and SIFT
+    //2. Descriptors Type: BRIEF, ORB, FREAK, AKAZE, SIFT
+    //3. matcher Type : MAT_BF, MAT_FLANN
+    //4. descriptor Type : DES_BINARY, DES_HOG
+    //5. selector Type:  SEL_NN, SEL_KNN
     
     /* INIT VARIABLES AND DATA STRUCTURES */
 
@@ -81,38 +75,15 @@ int main(int argc, const char *argv[])
     P_rect_00.at<double>(1,0) = 0.000000e+00; P_rect_00.at<double>(1,1) = 7.215377e+02; P_rect_00.at<double>(1,2) = 1.728540e+02; P_rect_00.at<double>(1,3) = 0.000000e+00;
     P_rect_00.at<double>(2,0) = 0.000000e+00; P_rect_00.at<double>(2,1) = 0.000000e+00; P_rect_00.at<double>(2,2) = 1.000000e+00; P_rect_00.at<double>(2,3) = 0.000000e+00;    
 
-    //output performance parameters
-    std::vector<perfStats> combinations;
-    //1. KeyPoints Type: HARRIS, FAST, BRISK, ORB, AKAZE, and SIFT
-    std::vector<std::string> keypoints{"SHITOMASI","HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
-    //2. Descriptors Type: BRIEF, ORB, FREAK, AKAZE, SIFT
-    std::vector<std::string> descriptortypes{"BRIEF", "ORB", "FREAK", "AKAZE", "SIFT"};
-    std::string filename = "../results/data.csv";
-    std::ofstream output_stream(filename, std::ios::binary);
-    if (!output_stream.is_open()) {
-        std::cerr << "failed to open file: " << filename << std::endl;
-        return EXIT_FAILURE;
-    }
-     // write CSV header row
-    output_stream << "Detector Type" << ","
-                << "Descriptor Type" << ","
-                << "Frame_ID" << ","
-                << "Camera TTC (s)"<< ","
-                <<"Lidar TTC(s)"<<","
-                << "Difference TTC" <<std::endl;
-
     // misc
     double sensorFrameRate = 10.0 / imgStepWidth; // frames per second for Lidar and camera
     int dataBufferSize = 2;       // no. of images which are held in memory (ring buffer) at the same time
+    vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
     bool bVis = false;            // visualize results
 
     /* MAIN LOOP OVER ALL IMAGES */
-    for(auto & kpt: keypoints){
-        for(auto & desc: descriptortypes){
-            vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
             for (size_t imgIndex = 0; imgIndex <= imgEndIndex - imgStartIndex; imgIndex+=imgStepWidth)
-            {       
-                perfStats  Perf = perfStats();
+            {
                 /* LOAD IMAGE INTO BUFFER */
             
                 // assemble filenames for current index
@@ -182,7 +153,7 @@ int main(int argc, const char *argv[])
 
                 // extract 2D keypoints from current image
                 vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-                string detectorType = kpt;
+                string detectorType = argv[1];
 
                 if (detectorType.compare("SHITOMASI") == 0)
                 {
@@ -219,11 +190,11 @@ int main(int argc, const char *argv[])
                 /* EXTRACT KEYPOINT DESCRIPTORS */
 
                 cv::Mat descriptors;
+                string descriptorType = argv[2]; // BRISK, BRIEF, ORB, FREAK, AKAZE, SIFT
                 try { 
-                   descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, desc);
+                   descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType);
 
                 } catch (const cv::Exception& e){
-                    std::cout<<"Kpt"<<kpt<<"Desc"<<desc<<std::endl;
                     continue;
                 }
                 // push descriptors for current frame to end of data buffer
@@ -238,9 +209,9 @@ int main(int argc, const char *argv[])
                     /* MATCH KEYPOINT DESCRIPTORS */
 
                     vector<cv::DMatch> matches;
-                    string matcherType = argv[1];        // MAT_BF, MAT_FLANN
-                    string descriptorType = argv[2]; // DES_BINARY, DES_HOG
-                    string selectorType = argv[3];       // SEL_NN, SEL_KNN
+                    string matcherType = argv[3];        // MAT_BF, MAT_FLANN
+                    string descriptorType = argv[4]; // DES_BINARY, DES_HOG
+                    string selectorType = argv[5];       // SEL_NN, SEL_KNN
                     try{
                         matchDescriptors((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints,
                                     (dataBuffer.end() - 2)->descriptors, (dataBuffer.end() - 1)->descriptors,
@@ -252,23 +223,19 @@ int main(int argc, const char *argv[])
                     // store matches in current data frame
                     (dataBuffer.end() - 1)->kptMatches = matches;
 
-
                     cout << "#7 : MATCH KEYPOINT DESCRIPTORS done" << endl;
 
+                    
                     /* TRACK 3D OBJECT BOUNDING BOXES */
 
                     map<int, int> bbBestMatches;
-                    try{
-                        matchBoundingBoxes(matches, bbBestMatches, *(dataBuffer.end()-2), *(dataBuffer.end()-1)); // associate bounding boxes between current and previous frame using keypoint matches
-                    }
-                    catch (const cv::Exception& e){
-                        continue;
-                    }
+                    matchBoundingBoxes(matches, bbBestMatches, *(dataBuffer.end()-2), *(dataBuffer.end()-1),true); // associate bounding boxes between current and previous frame using keypoint matches
 
                     // store matches in current data frame
                     (dataBuffer.end()-1)->bbMatches = bbBestMatches;
 
                     cout << "#8 : TRACK 3D OBJECT BOUNDING BOXES done" << endl;
+
 
                     /* COMPUTE TTC ON OBJECT IN FRONT */
 
@@ -296,26 +263,17 @@ int main(int argc, const char *argv[])
                         // compute TTC for current match
                         if( currBB->lidarPoints.size()>0 && prevBB->lidarPoints.size()>0 ) // only compute TTC if we have Lidar points
                         {
-                            //compute time-to-collision basdesced on Lidar data 
+                            //compute time-to-collision based on Lidar data 
                             double ttcLidar; 
-                            
                             computeTTCLidar(prevBB->lidarPoints, currBB->lidarPoints, sensorFrameRate, ttcLidar);
+
                             
                             double ttcCamera;
                             //assign enclosed keypoint matches to bounding box 
                             clusterKptMatchesWithROI(*currBB, (dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->kptMatches);                    
-                            
                             //compute time-to-collision based on camera 
                             computeTTCCamera((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, currBB->kptMatches, sensorFrameRate, ttcCamera);
-                            Perf.descriptorType =  desc;
-                            Perf.detectorType = kpt;
-                            Perf.ttc_camera = ttcCamera;
-                            Perf.ttc_lidar = ttcLidar;
-                            Perf.diff_ttc_camera_lidar = ttcCamera -ttcLidar;
-                            Perf.frame_id = imgIndex;
-
-                            combinations.push_back(Perf);                      
-                            bVis = false;
+                            bVis = true;
                             if (bVis)
                             {
                                 cv::Mat visImg = (dataBuffer.end() - 1)->cameraImg.clone();
@@ -340,21 +298,6 @@ int main(int argc, const char *argv[])
                 }
 
             } // eof loop over all images
-        }//end of descriptor loop
-    }//end detector  type
-
-    //output performance parameters to file
-    for (const auto &combo : combinations) {
-      output_stream << combo.detectorType
-                    << "," << combo.detectorType
-                    << "," << combo.descriptorType
-                    << "," << combo.frame_id
-                    << "," << std::fixed << std::setprecision(8) << combo.ttc_camera  
-                    <<","<< std::fixed << std::setprecision(8) << combo.ttc_lidar  
-                    <<","<< std::fixed << std::setprecision(8) << combo. diff_ttc_camera_lidar<<std::endl;
-  }
-  
-  output_stream.close();
 
   return 0;
 }

@@ -66,7 +66,6 @@ The algorithm to [compute lidar TTC](src/camera_fusion.cpp) is divided into thre
 
 The outliers removal is based on defined threshold euclidean distance around each point belonging to a cluster (in our case cars). 
 
-<img src="images/clusterex.png" width="440" height="414" />
 
 ### Associate Keypoint Correspondences with Bounding Boxes
 The algorithm is implemented in [clusterKptMatchesWithROI](src/camFusion.hpp). 
